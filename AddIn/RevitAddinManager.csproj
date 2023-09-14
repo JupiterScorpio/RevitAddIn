@@ -1,0 +1,147 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <LangVersion>10.0</LangVersion>
+    <PlatformTarget>x64</PlatformTarget>
+    <ImplicitUsings>true</ImplicitUsings>
+    <UseWindowsForms>false</UseWindowsForms>
+    <TargetFramework>net48</TargetFramework>
+    <Configurations>Debug R22;Debug R23;Debug R24</Configurations>
+    <Configurations>$(Configurations);Release R18;Release R19;Release R20;Release R21;Release R22;Release R23;Release R24</Configurations>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Debug'))">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineConstants>$(DefineConstants);DEBUG</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('Release'))">
+    <Optimize>true</Optimize>
+    <DebugType>none</DebugType>
+    <DefineConstants>$(DefineConstants);RELEASE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('R18'))">
+    <RevitVersion>2018</RevitVersion>
+    <DefineConstants>$(DefineConstants);R18</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('R19'))">
+    <RevitVersion>2019</RevitVersion>
+    <DefineConstants>$(DefineConstants);R19</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('R20'))">
+    <RevitVersion>2020</RevitVersion>
+    <DefineConstants>$(DefineConstants);R20</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('R21'))">
+    <RevitVersion>2021</RevitVersion>
+    <DefineConstants>$(DefineConstants);R21</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('R22'))">
+    <RevitVersion>2022</RevitVersion>
+    <DefineConstants>$(DefineConstants);R22</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('R23'))">
+    <RevitVersion>2023</RevitVersion>
+    <DefineConstants>$(DefineConstants);R23</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition="$(Configuration.Contains('R24'))">
+    <RevitVersion>2024</RevitVersion>
+    <DefineConstants>$(DefineConstants);R24</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup>
+    <Version>$(RevitVersion)</Version>
+    <GenerateAssemblyInfo>true</GenerateAssemblyInfo>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <Description>A Project Support for developer in revit </Description>
+    <PublishSingleFile>true</PublishSingleFile>
+    <PublishTrimmed>true</PublishTrimmed>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Remove="Resources\dev.ico" />
+    <None Remove="Resources\dev.png" />
+    <None Remove="Resources\folder.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Chuongmep.Revit.Api.RevitAPI" Version="$(RevitVersion).*">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Chuongmep.Revit.Api.RevitAPIUI" Version="$(RevitVersion).*">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+    <PackageReference Include="Chuongmep.Revit.Api.AdWindows" Version="$(RevitVersion).*">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Resource Include="Resources\dev.ico" />
+    <Resource Include="Resources\dev.png" />
+    <Resource Include="Resources\folder.png" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Properties\App.Designer.cs">
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>App.settings</DependentUpon>
+    </Compile>
+    <Compile Update="Resource.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Resource.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Update="Resource.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resource.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Properties\App.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>App.Designer.cs</LastGenOutput>
+    </None>
+    <None Update="View\AssemblyLoader.xaml">
+      <Generator>MSBuild:Compile</Generator>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Page Update="View\FrmAddInManager.xaml">
+      <SubType>Designer</SubType>
+    </Page>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Reference Include="PresentationFramework.Aero2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\RevitElementBipChecker\RevitElementBipChecker.csproj" />
+  </ItemGroup>
+  
+  <Target Name="CopyFiles" AfterTargets="CoreBuild">
+    <ItemGroup>
+      <RootItem Include="$(ProjectDir)*.addin" />
+      <AddinItem Include="$(TargetDir)*.dll" />
+      <AddinItem Include="$(TargetDir)*.pdb" />
+    </ItemGroup>
+
+    <PropertyGroup>
+      <RootDir>bin\AddIn $(RevitVersion) $(Configuration)\</RootDir>
+      <AddinDir>$(RootDir)$(AssemblyName)\</AddinDir>
+    </PropertyGroup>
+
+    <Copy SourceFiles="@(RootItem)" DestinationFolder="$(RootDir)" />
+    <Copy SourceFiles="@(AddinItem)" DestinationFolder="$(AddinDir)" />
+
+    <ItemGroup>
+      <AddinFiles Include="$(RootDir)**\*.*" />
+    </ItemGroup>
+    <Message Text="Copy files to Addin folder" Importance="high" />
+    <Copy SourceFiles="@(AddinFiles)" DestinationFolder="$(AppData)\Autodesk\Revit\Addins\$(RevitVersion)\%(RecursiveDir)" Condition="$(Configuration.Contains('Debug'))" />
+  </Target>
+
+</Project>
